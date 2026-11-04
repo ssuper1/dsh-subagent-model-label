@@ -1,0 +1,5 @@
+- id: ui-subagent
+  disabled: true
+- insert:
+    - id: subagent-model-label
+      name: dsh-subagent-model-label
