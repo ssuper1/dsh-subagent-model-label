@@ -1,0 +1,18 @@
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import * as jsx from 'react/jsx-runtime';
+import {readFileSync,writeFileSync} from 'node:fs';
+import vm from 'node:vm';
+const code=readFileSync(new URL('../lib/client.js',import.meta.url),'utf8').replace('exports.apply = apply;','exports.CatalogRows = CatalogRows; exports.apply = apply;');
+let api;const sheets=[];
+const primitives={StateDot:()=>React.createElement('span',{style:{display:'inline-block',width:6,height:6,background:'#20bf67',borderRadius:'50%',marginTop:6}}),IconChevronRightOutlineRegular:()=>React.createElement('span',null,'›'),Tooltip:({children})=>children};
+vm.runInNewContext(code,{window:{__ModuleLoader__:{load:({factory})=>{api=factory(name=>name==='react'?React:name==='react/jsx-runtime'?jsx:name==='@deepseek-ai/dsh-client-ui-primitives'?primitives:{});}}},document:{querySelector:()=>null,createElement:()=>({dataset:{}}),head:{appendChild:tag=>sheets.push(tag.textContent)}}});
+const names=['调查消息编辑界面','分析归档内消息界面','检查安全部署和验证入口'];
+const models=['gpt-6.1-terra','hy4-preview','deepseek-v4.1-flash'];
+const entries=names.map((label,i)=>({id:'child-'+i,label,mode:'continuable',activity:'inactive'}));
+const summaries=Object.fromEntries(entries.map((e,i)=>[e.id,{title:'仅调查不修改。分析任务',projectionValues:{modelSelection:{lastUsed:{provider:'workbuddy',model:models[i],reasoningEffort:'high'},next:null},tokenUsage:{input:123456,output:2345}}}]));
+const catalogs=Object.fromEntries(entries.map(e=>[e.id,{state:'ready',entries:[]}]));
+const tree=React.createElement(api.CatalogRows,{parentSessionId:'parent',currentSessionId:'parent',catalog:{state:'ready',entries},catalogs,summaries,expanded:new Set(),level:1,openChild:()=>{},openChildAside:()=>{},refreshProjection:()=>{},toggleBranch:()=>{},closeCatalog:()=>{},t:key=>({'mode.continuable':'可继续','activity.inactive':'当前未运行','open.sidebar.aria':'侧边栏打开','tokens.total':'142K tok'}[key]??key)});
+const html='<!doctype html><meta charset="utf-8"><title>Subagent model label — component preview</title><style>:root{--dsw-alias-label-primary:#17191d;--dsw-alias-label-secondary:#60646c;--dsw-alias-label-tertiary:#898d94;--dsw-radius-md:8px;--dsw-alias-interactive-bg-hover:#eef0f2}body{font-family:Arial,sans-serif;margin:24px;background:white}.preview{width:336px;background:#f7f8f9;border:1px solid #e5e6e8;border-radius:12px;padding:6px}'+sheets.join('\n')+'</style><div class="preview" role="tree">'+renderToStaticMarkup(tree)+'</div>';
+writeFileSync(new URL('../model-label-preview.html',import.meta.url),html);
+console.log('Rendered actual built CatalogRows with React (fixture data).');
