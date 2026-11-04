@@ -1,0 +1,4 @@
+node_modules/
+*.log
+model-label-preview.html
+model-label-preview.png
